@@ -10,28 +10,28 @@ package imclient;
  * @author Akhil
  */
 public class IMClient {
-
+    
+    private final static String HOST_NAME = "akhil-pc";
+    
     /**
      * @param args the command line arguments
      * @throws java.lang.Exception
      */
     public static void main(String[] args) throws Exception{
-                String username = "test_user1";
-	        String password = "test_pass1";
-	        XmppManager xmppManager = new XmppManager("akhil-pc", 5222);
-	        
-	        xmppManager.init();
-	        xmppManager.performLogin(username, password);
-	        xmppManager.setStatus(true, "Hello everyone");
-	         
-	        String buddyJID = "test_user2@akhil-pc";
-	        String buddyName = "test_user2";
-	        xmppManager.createEntry(buddyJID, buddyName);
-	         
-	        xmppManager.sendMessage("Hello mate", "test_user2@akhil-pc");
-	         
-	        boolean isRunning = true;
-	         
-	        xmppManager.destroy();    
+        String username = "test_user1";
+        String password = "test_pass1";
+        XmppManager xmppManager = new XmppManager(HOST_NAME, 5222);
+        
+        xmppManager.init();
+        xmppManager.performLogin(username, password);
+        xmppManager.setStatus(true, "Hello everyone");
+	
+        String buddyName = "test_user2";
+        String buddyJID = buddyName + "@" + HOST_NAME;
+        xmppManager.createEntry(buddyJID, buddyName);
+	
+        xmppManager.sendMessage("Hello mate", buddyJID);
+	
+        xmppManager.destroy();    
     }
 }

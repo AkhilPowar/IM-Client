@@ -30,10 +30,11 @@ import org.jxmpp.util.*;
  */
 public class XmppManager {
     
-    private static final int packetReplyTimeout = 1000; // millis
+    private static final int PACKET_REPLY_TIMEOUT = 1000; // millis
     
-    private String server;
-    private int port;
+    private final String server;
+    private final int port;
+    private final static String DOMAIN = "akhil-pc";
     
     private XMPPTCPConnectionConfiguration config;
     private AbstractXMPPConnection connection;
@@ -47,17 +48,17 @@ public class XmppManager {
     }
     
     public void init() throws XMPPException {
-        
+            
         System.out.println(String.format("Initializing connection to server %1$s port %2$d", server, port));
 
-        SmackConfiguration.setDefaultReplyTimeout(packetReplyTimeout);
+        SmackConfiguration.setDefaultReplyTimeout(PACKET_REPLY_TIMEOUT);
         
         try{
         config = XMPPTCPConnectionConfiguration.builder()
                 .setSecurityMode(XMPPTCPConnectionConfiguration.SecurityMode.disabled)
                 .setHost(server)
                 .setPort(port)
-                .setXmppDomain("akhil-pc")
+                .setXmppDomain(DOMAIN)
                 .setUsernameAndPassword("test_user1", "test_pass1")
                 .setCompressionEnabled(false)
                 .build();
