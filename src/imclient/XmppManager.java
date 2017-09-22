@@ -9,6 +9,8 @@ import java.io.IOException;
 import org.jivesoftware.smack.chat2.Chat;
 import org.jivesoftware.smack.chat2.ChatManager;
 import org.jivesoftware.smack.MessageListener;
+import org.jivesoftware.smack.chat2.IncomingChatMessageListener;
+import org.jivesoftware.smack.chat2.OutgoingChatMessageListener;
 import org.jivesoftware.smack.roster.Roster;
 import org.jivesoftware.smack.SmackConfiguration;
 import org.jivesoftware.smack.AbstractXMPPConnection;
@@ -24,6 +26,7 @@ import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 import org.jxmpp.jid.impl.*;
 import org.jxmpp.jid.*;
 import org.jxmpp.util.*;
+import org.jxmpp.util.XmppStringUtils;
 /**
  *
  * @author Akhil
@@ -73,7 +76,7 @@ public class XmppManager {
         System.out.println("Connected: " + connection.isConnected());
         
         chatManager = ChatManager.getInstanceFor(connection);
-        messageListener = new MyMessageListener();
+        chatManager.addIncomingListener(new MyMessageListener());
         
     }
     
@@ -121,13 +124,22 @@ public class XmppManager {
         roster.createEntry(JidCreate.bareFrom(user), name, null);
     }
     
-    class MyMessageListener implements MessageListener {
+    class MyMessageListener implements IncomingChatMessageListener {
 
         @Override
-        public void processMessage(Message message) {
+        public void newIncomingMessage(EntityBareJid jid, Message message, Chat chat) {
+            Roster roster = Roster.getInstanceFor(connection);
+            if(!roster.contains(jid)){
+                try{
+                roster.createEntry(jid, XmppStringUtils.parseLocalpart(jid.toString()), null);
+                }
+                catch(InterruptedException | SmackException.NoResponseException | NotConnectedException | SmackException.NotLoggedInException | XMPPException.XMPPErrorException e){
+                    System.out.println(e);
+                }
+            }
             String from = message.getFrom().toString();
             String body = message.getBody();
-            System.out.println(String.format("Received message '%1$s' from '2$s'", body, from));
+            System.out.println(String.format("Received message '%1$s' from '%2$s'", body, from));
         }
 
     }
