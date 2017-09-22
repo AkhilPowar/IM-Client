@@ -8,6 +8,8 @@ package imclient;
 /**
  *
  * @author Akhil
+ * @author Praveen
+ * @author Prafull
  */
 public class IMClient {
     
@@ -19,7 +21,7 @@ public class IMClient {
      */
     public static void main(String[] args) throws Exception{
         String username = "test_user1";
-        String password = "test_pass1";
+        String password = "test_pass1"; 
         XmppManager xmppManager = new XmppManager(HOST_NAME, 5222);
         
         xmppManager.init();
@@ -29,9 +31,10 @@ public class IMClient {
         String buddyName = "test_user2";
         String buddyJID = buddyName + "@" + HOST_NAME;
         xmppManager.createEntry(buddyJID, buddyName);
-	
         xmppManager.sendMessage("Hello mate", buddyJID);
-	
-        xmppManager.destroy();    
+	while(true){
+            
+        }
+//        xmppManager.destroy();    
     }
 }
