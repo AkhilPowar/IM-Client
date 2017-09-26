@@ -131,7 +131,6 @@ public class ClientWindow extends javax.swing.JFrame {
         jButton4.setText("->");
         jButton4.setContentAreaFilled(false);
         jButton4.setFocusPainted(false);
-        jButton4.setOpaque(false);
         jButton4.setRequestFocusEnabled(false);
         jButton4.setRolloverEnabled(false);
         jPanel2.add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(400, 0, 50, 40));
