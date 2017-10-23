@@ -6,6 +6,14 @@
 package imclient;
 
 import javax.swing.UIManager;
+import java.sql.*;
+import java.util.Set;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.DefaultListModel;
+import javax.swing.JList;
+import javax.swing.ListModel;
+import javax.swing.SwingConstants;
+import org.jivesoftware.smack.XMPPException;
 
 /**
  *
@@ -29,15 +37,16 @@ public class ClientWindow extends javax.swing.JFrame {
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
 
-        panel1 = new java.awt.Panel();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        panel2 = new java.awt.Panel();
-        jPanel1 = new javax.swing.JPanel();
-        jPanel2 = new javax.swing.JPanel();
-        jButton4 = new javax.swing.JButton();
-        jTextField1 = new javax.swing.JTextField();
-        jMenuBar1 = new javax.swing.JMenuBar();
+        messagePanel = new javax.swing.JPanel();
+        sendButton = new javax.swing.JButton();
+        messageField = new javax.swing.JTextField();
+        chatAreaPane = new javax.swing.JScrollPane();
+        chatArea = new javax.swing.JTextArea();
+        contactListPane = new javax.swing.JScrollPane();
+        contactList = new javax.swing.JList<>();
+        typeListArea = new javax.swing.JScrollPane();
+        typeList = new javax.swing.JList<>();
+        mainMenuBar = new javax.swing.JMenuBar();
         jMenu1 = new javax.swing.JMenu();
         jMenuItem1 = new javax.swing.JMenuItem();
         jMenu2 = new javax.swing.JMenu();
@@ -50,96 +59,95 @@ public class ClientWindow extends javax.swing.JFrame {
         setPreferredSize(new java.awt.Dimension(905, 630));
         setResizable(false);
         setSize(new java.awt.Dimension(950, 600));
-        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        panel1.setBackground(new java.awt.Color(0, 51, 51));
-        panel1.setMinimumSize(new java.awt.Dimension(200, 580));
-        panel1.setPreferredSize(new java.awt.Dimension(200, 580));
-        panel1.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
-
-        jButton1.setBackground(new java.awt.Color(0, 51, 51));
-        jButton1.setFont(new java.awt.Font("SansSerif", 0, 24)); // NOI18N
-        jButton1.setForeground(new java.awt.Color(255, 255, 255));
-        jButton1.setText("Contacts");
-        jButton1.setBorder(null);
-        jButton1.setBorderPainted(false);
-        jButton1.setContentAreaFilled(false);
-        jButton1.setFocusPainted(false);
-        jButton1.setMaximumSize(new java.awt.Dimension(400, 100));
-        jButton1.setPreferredSize(new java.awt.Dimension(200, 60));
-        panel1.add(jButton1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, -1));
-
-        jButton2.setBackground(new java.awt.Color(0, 51, 51));
-        jButton2.setFont(new java.awt.Font("SansSerif", 0, 24)); // NOI18N
-        jButton2.setForeground(new java.awt.Color(255, 255, 255));
-        jButton2.setText("Groups");
-        jButton2.setBorder(null);
-        jButton2.setBorderPainted(false);
-        jButton2.setContentAreaFilled(false);
-        jButton2.setFocusPainted(false);
-        jButton2.setMaximumSize(new java.awt.Dimension(400, 100));
-        jButton2.setPreferredSize(new java.awt.Dimension(200, 60));
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
+        addWindowListener(new java.awt.event.WindowAdapter() {
+            public void windowClosed(java.awt.event.WindowEvent evt) {
+                formWindowClosed(evt);
             }
         });
-        panel1.add(jButton2, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 60, -1, -1));
+        getContentPane().setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        getContentPane().add(panel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, -1, 580));
+        messagePanel.setBackground(new java.awt.Color(0, 204, 204));
+        messagePanel.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
 
-        panel2.setBackground(new java.awt.Color(0, 102, 102));
-        panel2.setCursor(new java.awt.Cursor(java.awt.Cursor.DEFAULT_CURSOR));
-        panel2.setForeground(new java.awt.Color(255, 255, 255));
-        panel2.setMinimumSize(new java.awt.Dimension(250, 580));
-        panel2.setPreferredSize(new java.awt.Dimension(250, 580));
+        sendButton.setBackground(new java.awt.Color(0, 204, 204));
+        sendButton.setFont(new java.awt.Font("Trebuchet MS", 1, 12)); // NOI18N
+        sendButton.setText("->");
+        sendButton.setContentAreaFilled(false);
+        sendButton.setFocusPainted(false);
+        sendButton.setRequestFocusEnabled(false);
+        sendButton.setRolloverEnabled(false);
+        sendButton.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseClicked(java.awt.event.MouseEvent evt) {
+                sendButtonMouseClicked(evt);
+            }
+        });
+        messagePanel.add(sendButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(400, 0, 50, 40));
 
-        javax.swing.GroupLayout panel2Layout = new javax.swing.GroupLayout(panel2);
-        panel2.setLayout(panel2Layout);
-        panel2Layout.setHorizontalGroup(
-            panel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 250, Short.MAX_VALUE)
-        );
-        panel2Layout.setVerticalGroup(
-            panel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 580, Short.MAX_VALUE)
-        );
+        messageField.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
+        messagePanel.add(messageField, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 400, 40));
 
-        getContentPane().add(panel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 0, -1, 580));
+        getContentPane().add(messagePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 540, 450, 40));
 
-        jPanel1.setBackground(new java.awt.Color(51, 204, 255));
-        jPanel1.setPreferredSize(new java.awt.Dimension(450, 540));
+        chatAreaPane.setBackground(new java.awt.Color(0, 153, 153));
+        chatAreaPane.setBorder(null);
+        chatAreaPane.setPreferredSize(new java.awt.Dimension(450, 540));
 
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 450, Short.MAX_VALUE)
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 540, Short.MAX_VALUE)
-        );
+        chatArea.setEditable(false);
+        chatArea.setBackground(new java.awt.Color(0, 153, 153));
+        chatArea.setColumns(10);
+        chatArea.setFont(new java.awt.Font("Dialog", 0, 14)); // NOI18N
+        chatArea.setLineWrap(true);
+        chatArea.setRows(5);
+        chatAreaPane.setViewportView(chatArea);
 
-        getContentPane().add(jPanel1, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 0, 450, 540));
+        getContentPane().add(chatAreaPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 0, 450, 540));
 
-        jPanel2.setBackground(new java.awt.Color(51, 153, 255));
-        jPanel2.setLayout(new org.netbeans.lib.awtextra.AbsoluteLayout());
+        contactListPane.setBackground(new java.awt.Color(0, 102, 102));
+        contactListPane.setBorder(null);
+        contactListPane.setPreferredSize(new java.awt.Dimension(250, 580));
 
-        jButton4.setBackground(new java.awt.Color(102, 204, 255));
-        jButton4.setFont(new java.awt.Font("Trebuchet MS", 1, 12)); // NOI18N
-        jButton4.setText("->");
-        jButton4.setContentAreaFilled(false);
-        jButton4.setFocusPainted(false);
-        jButton4.setRequestFocusEnabled(false);
-        jButton4.setRolloverEnabled(false);
-        jPanel2.add(jButton4, new org.netbeans.lib.awtextra.AbsoluteConstraints(400, 0, 50, 40));
-        jPanel2.add(jTextField1, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 400, 40));
+        contactList.setBackground(new java.awt.Color(0, 102, 102));
+        contactList.setFont(new java.awt.Font("Tahoma", 0, 14)); // NOI18N
+        contactList.setForeground(new java.awt.Color(255, 255, 255));
+        contactList.setModel(new DefaultListModel());
+        contactList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        contactList.setFixedCellHeight(50);
+        contactList.setFixedCellWidth(250);
+        contactList.setPreferredSize(new java.awt.Dimension(250, 580));
+        contactList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                contactListValueChanged(evt);
+            }
+        });
+        contactListPane.setViewportView(contactList);
 
-        getContentPane().add(jPanel2, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 540, 450, 40));
+        getContentPane().add(contactListPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(200, 0, 250, 580));
 
-        jMenuBar1.setOpaque(false);
-        jMenuBar1.setPreferredSize(new java.awt.Dimension(900, 20));
+        typeListArea.setBorder(null);
+        typeListArea.setPreferredSize(new java.awt.Dimension(200, 580));
+
+        typeList.setBackground(new java.awt.Color(0, 51, 51));
+        typeList.setFont(new java.awt.Font("Tahoma", 0, 24)); // NOI18N
+        typeList.setForeground(new java.awt.Color(255, 255, 255));
+        typeList.setModel(new javax.swing.AbstractListModel<String>() {
+            String[] strings = { "Contacts", "Groups" };
+            public int getSize() { return strings.length; }
+            public String getElementAt(int i) { return strings[i]; }
+        });
+        typeList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        typeList.setFixedCellHeight(50);
+        typeList.setFixedCellWidth(200);
+        typeList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+            public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
+                typeListValueChanged(evt);
+            }
+        });
+        typeListArea.setViewportView(typeList);
+
+        getContentPane().add(typeListArea, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 200, 580));
+
+        mainMenuBar.setOpaque(false);
+        mainMenuBar.setPreferredSize(new java.awt.Dimension(900, 20));
 
         jMenu1.setText("File");
         jMenu1.setToolTipText("");
@@ -149,21 +157,88 @@ public class ClientWindow extends javax.swing.JFrame {
         jMenuItem1.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         jMenu1.add(jMenuItem1);
 
-        jMenuBar1.add(jMenu1);
+        mainMenuBar.add(jMenu1);
 
         jMenu2.setText("Edit");
-        jMenuBar1.add(jMenu2);
+        mainMenuBar.add(jMenu2);
 
-        setJMenuBar(jMenuBar1);
+        setJMenuBar(mainMenuBar);
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
 
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_jButton2ActionPerformed
+    private void sendButtonMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_sendButtonMouseClicked
+        String message = messageField.getText();
+        try{
+            xmppManager.sendMessage(message, buddyName+"@"+HOST_NAME);
+            DBManager.storeMessage(userName, buddyName, message);
+            updateChatArea();
+        }
+        catch(Exception e){
+            System.out.println(e);
+        }
+    }//GEN-LAST:event_sendButtonMouseClicked
+
+    private void formWindowClosed(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosed
+        try{
+            xmppManager.destroy();
+            DBManager.closeConnection();
+        }
+        catch(SQLException e){
+            System.out.println(e);
+        }
+    }//GEN-LAST:event_formWindowClosed
+
+    private void contactListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_contactListValueChanged
+        ListModel model = contactList.getModel();
+        int index = contactList.getSelectedIndex();
+        buddyName = model.getElementAt(index).toString().split(":")[0];
+        updateChatArea();
+    }//GEN-LAST:event_contactListValueChanged
+
+    private void typeListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_typeListValueChanged
+        Set<String> contacts = xmppManager.getContacts(userName);
+        DefaultListModel model = new DefaultListModel();
+        for(String s: contacts){
+            model.addElement(s);
+        }
+        contactList.setModel(model);
+    }//GEN-LAST:event_typeListValueChanged
 
     /**
+     * Initializes the XMPP manager, performs login for the user and sets
+     * the desired status
+     * @param username
+     * @param password
+     * @throws org.jivesoftware.smack.XMPPException
+     */
+    private void setupManager(String username, String password, String status) throws XMPPException{
+        xmppManager = new XmppManager(HOST_NAME, 5222);
+        xmppManager.init();
+        xmppManager.performLogin(username, password);
+        xmppManager.setStatus(true, status);
+    }
+    
+    /**
+     * Update the chat to display all messages
+     * <p>
+     * Erases previous display and redisplays all messages
+     */
+    private void updateChatArea(){
+        try{
+            ResultSet rs = DBManager.getMessages(userName, buddyName);
+            chatArea.setText("");
+            while(rs.next())
+                chatArea.append("\n" + rs.getString("sender") + " (" 
+                        + rs.getTimestamp("timestamp") + "): " + rs.getString("body"));
+        }
+        catch(SQLException e){
+            System.out.println(e);
+        }
+    }
+    
+    /**
+     * Creates a thread for the application window
      * @param args the command line arguments
      */
     public static void main(String args[]) {
@@ -174,42 +249,70 @@ public class ClientWindow extends javax.swing.JFrame {
          */
         try {
             for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-            if ("Nimbus".equals(info.getName())) {
-                UIManager.setLookAndFeel(info.getClassName());
-                break;
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
             }
         }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(ClientWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(ClientWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(ClientWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(ClientWindow.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+        catch(ClassNotFoundException | InstantiationException | 
+                IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex){
+            java.util.logging.Logger.getLogger(ClientWindow.class.getName())
+                    .log(java.util.logging.Level.SEVERE, null, ex);
         }
-        //</editor-fold>=
 
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
+            @Override
             public void run() {
-                new ClientWindow().setVisible(true);
+                ClientWindow window = new ClientWindow();
+                
+                try{
+                    window.setupManager("test_user1", "test_pass1", "Hello everyone");
+                    window.userName = "test_user1";
+                    DBManager.databaseConnect(DB_NAME, DB_USER, DB_PASSWORD);
+                }
+                catch(Exception e){
+                    System.out.println(e);
+                }
+                
+                //center type list elements
+                DefaultListCellRenderer renderer = 
+                        (DefaultListCellRenderer) window.typeList.getCellRenderer();
+                renderer.setHorizontalAlignment(SwingConstants.CENTER);
+                
+                //center contact list elements
+                renderer = (DefaultListCellRenderer) window.contactList.getCellRenderer();
+                renderer.setHorizontalAlignment(SwingConstants.CENTER);
+                
+                //Make the window visible
+                window.setVisible(true);
             }
         });
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton4;
+    private javax.swing.JTextArea chatArea;
+    private javax.swing.JScrollPane chatAreaPane;
+    private javax.swing.JList<String> contactList;
+    private javax.swing.JScrollPane contactListPane;
     private javax.swing.JMenu jMenu1;
     private javax.swing.JMenu jMenu2;
-    private javax.swing.JMenuBar jMenuBar1;
     private javax.swing.JMenuItem jMenuItem1;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JTextField jTextField1;
-    private java.awt.Panel panel1;
-    private java.awt.Panel panel2;
+    private javax.swing.JMenuBar mainMenuBar;
+    private javax.swing.JTextField messageField;
+    private javax.swing.JPanel messagePanel;
+    private javax.swing.JButton sendButton;
+    private javax.swing.JList<String> typeList;
+    private javax.swing.JScrollPane typeListArea;
     // End of variables declaration//GEN-END:variables
+
+    // Custom variable declaration - can be modified
+    private final static String HOST_NAME = "akhil-pc";
+    private final static String DB_NAME = "im_db";
+    private final static String DB_USER = "im_admin";
+    private final static String DB_PASSWORD = "im_password";
+    private static XmppManager xmppManager;
+    private String userName;
+    private String buddyName;
 }
