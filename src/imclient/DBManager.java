@@ -9,6 +9,7 @@ import java.sql.*;
 
 /**
  * Manages MySQL database connection and interaction
+ * 
  * @author Akhil
  */
 public class DBManager {
@@ -25,7 +26,7 @@ public class DBManager {
         try{  
             Class.forName("com.mysql.jdbc.Driver");  
             connection = DriverManager.getConnection(  
-                    "jdbc:mysql://localhost:3306/"+database, name, password);
+                    "jdbc:mysql://akhil-pc:3306/"+database, name, password);
         }
         catch(ClassNotFoundException | SQLException e){ 
             System.out.println(e);
@@ -77,6 +78,7 @@ public class DBManager {
     
     /**
      * Close the database connection
+     * 
      * @throws SQLException 
      */
     public static void closeConnection() throws SQLException{
