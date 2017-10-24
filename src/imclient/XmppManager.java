@@ -6,8 +6,11 @@
 package imclient;
 
 import java.io.IOException;
+import java.sql.SQLException;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
+import javafx.util.Pair;
 import org.jivesoftware.smack.chat2.Chat;
 import org.jivesoftware.smack.chat2.ChatManager;
 import org.jivesoftware.smack.chat2.IncomingChatMessageListener;
@@ -21,6 +24,7 @@ import org.jivesoftware.smack.packet.Message;
 import org.jivesoftware.smack.packet.Presence;
 import org.jivesoftware.smack.packet.Presence.Type;
 import org.jivesoftware.smack.roster.RosterEntry;
+import org.jivesoftware.smack.roster.RosterListener;
 import org.jivesoftware.smack.tcp.XMPPTCPConnection;
 import org.jivesoftware.smack.tcp.XMPPTCPConnectionConfiguration;
 
@@ -45,6 +49,16 @@ public class XmppManager {
 
     private ChatManager chatManager;
     
+    private Roster roster;
+    
+    private ClientWindow clientWindow;
+    
+    /**
+     * Constructor
+     * 
+     * @param server    the IP of the server
+     * @param port      port number on which the server is listening
+     */
     public XmppManager(String server, int port) {
         this.server = server;
         this.port = port;
@@ -73,6 +87,21 @@ public class XmppManager {
         
         connection = new XMPPTCPConnection(config);
         connection.connect();
+        
+        roster = Roster.getInstanceFor(connection);
+        roster.addRosterListener(new RosterListener() {
+            @Override
+            public void entriesAdded(Collection<Jid> addresses) {}
+            @Override
+            public void entriesDeleted(Collection<Jid> addresses) {}
+            @Override
+            public void entriesUpdated(Collection<Jid> addresses) {}
+            @Override
+            public void presenceChanged(Presence presence) {
+                clientWindow.updateContactList();
+            }
+        });
+        
         }
         catch(IOException | InterruptedException | SmackException | XMPPException e){
             System.out.println(e);
@@ -104,6 +133,14 @@ public class XmppManager {
     }
     
     /**
+     * Sets the clientWindow attribute to manager's associated IMClient window
+     * @param window 
+     */
+    public void setWindow(ClientWindow window){
+        this.clientWindow = window;
+    }
+    
+    /**
      * Set the presence and status of the user
      * 
      * @param available boolean denoting whether user is to be shown as online
@@ -129,14 +166,18 @@ public class XmppManager {
      * @param user  user whose contacts are to be retrieved
      * @return      contact list
      */
-    public Set<String> getContacts(String user){
-        Roster roster = Roster.getInstanceFor(connection);
+    public Set<Pair<RosterEntry, Presence> > getContacts(String user){
         Set<RosterEntry> rosterSet = roster.getEntries();
-        Set<String> rosterStringSet = new HashSet<>();
-        for (RosterEntry re : rosterSet) {
-            rosterStringSet.add(re.toString());
-        }
-        return rosterStringSet;
+        Set< Pair<RosterEntry, Presence> > contacts = 
+                new HashSet<>();
+        rosterSet.forEach((re) -> {
+            contacts.add(new Pair(re, roster.getPresence(re.getJid())));
+        });
+//        Set<String> rosterStringSet = new HashSet<>();
+//        for (RosterEntry re : rosterSet) {
+//            rosterStringSet.add(re.toString());
+//        }
+        return contacts;
     }
     
     /**
@@ -171,7 +212,6 @@ public class XmppManager {
      */
     public void createEntry(String user, String name) throws Exception {
         System.out.println(String.format("Creating entry for buddy '%1$s' with name %2$s", user, name));
-        Roster roster = Roster.getInstanceFor(connection);
         roster.createEntry(JidCreate.bareFrom(user), name, null);
     }
     
@@ -192,9 +232,16 @@ public class XmppManager {
                     System.out.println(e);
                 }
             }
-            String from = message.getFrom().toString();
+            String to = message.getTo().toString().split("@")[0];
+            String from = message.getFrom().toString().split("@")[0];
             String body = message.getBody();
             //TODO - Add code to update chat display using updateChat()
+            try{
+                clientWindow.updateChatArea();
+            }
+            catch(Exception e){
+                System.out.println(e);
+            }
         }
 
     }
