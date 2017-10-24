@@ -122,6 +122,9 @@
             <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
               <Font name="Dialog" size="12" style="0"/>
             </Property>
+            <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+              <Border info="null"/>
+            </Property>
           </Properties>
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout" value="org.netbeans.modules.form.compat2.layouts.DesignAbsoluteLayout$AbsoluteConstraintsDescription">
@@ -151,18 +154,22 @@
 
       <Layout class="org.netbeans.modules.form.compat2.layouts.support.JScrollPaneSupportLayout"/>
       <SubComponents>
-        <Component class="javax.swing.JTextArea" name="chatArea">
+        <Component class="javax.swing.JTextPane" name="chatArea">
           <Properties>
             <Property name="editable" type="boolean" value="false"/>
             <Property name="background" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
               <Color blue="99" green="99" red="0" type="rgb"/>
             </Property>
-            <Property name="columns" type="int" value="10"/>
-            <Property name="font" type="java.awt.Font" editor="org.netbeans.beaninfo.editors.FontEditor">
-              <Font name="Dialog" size="14" style="0"/>
+            <Property name="border" type="javax.swing.border.Border" editor="org.netbeans.modules.form.editors2.BorderEditor">
+              <Border info="org.netbeans.modules.form.compat2.border.EmptyBorderInfo">
+                <EmptyBorder bottom="10" left="10" right="10" top="10"/>
+              </Border>
             </Property>
-            <Property name="lineWrap" type="boolean" value="true"/>
-            <Property name="rows" type="int" value="5"/>
+            <Property name="focusable" type="boolean" value="false"/>
+            <Property name="margin" type="java.awt.Insets" editor="org.netbeans.beaninfo.editors.InsetsEditor">
+              <Insets value="[10, 10, 10, 10]"/>
+            </Property>
+            <Property name="requestFocusEnabled" type="boolean" value="false"/>
           </Properties>
         </Component>
       </SubComponents>
@@ -202,10 +209,17 @@
               <Connection code="new DefaultListModel()" type="code"/>
             </Property>
             <Property name="selectionMode" type="int" value="0"/>
+            <Property name="alignmentX" type="float" value="2.0"/>
+            <Property name="alignmentY" type="float" value="2.0"/>
             <Property name="fixedCellHeight" type="int" value="50"/>
             <Property name="fixedCellWidth" type="int" value="250"/>
+            <Property name="focusable" type="boolean" value="false"/>
             <Property name="preferredSize" type="java.awt.Dimension" editor="org.netbeans.beaninfo.editors.DimensionEditor">
               <Dimension value="[250, 580]"/>
+            </Property>
+            <Property name="requestFocusEnabled" type="boolean" value="false"/>
+            <Property name="selectionBackground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+              <Color blue="ff" green="ff" red="0" type="rgb"/>
             </Property>
           </Properties>
           <Events>
@@ -254,6 +268,11 @@
             <Property name="selectionMode" type="int" value="0"/>
             <Property name="fixedCellHeight" type="int" value="50"/>
             <Property name="fixedCellWidth" type="int" value="200"/>
+            <Property name="focusable" type="boolean" value="false"/>
+            <Property name="requestFocusEnabled" type="boolean" value="false"/>
+            <Property name="selectionBackground" type="java.awt.Color" editor="org.netbeans.beaninfo.editors.ColorEditor">
+              <Color blue="cc" green="cc" red="0" type="rgb"/>
+            </Property>
           </Properties>
           <Events>
             <EventHandler event="valueChanged" listener="javax.swing.event.ListSelectionListener" parameters="javax.swing.event.ListSelectionEvent" handler="typeListValueChanged"/>

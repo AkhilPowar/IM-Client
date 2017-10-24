@@ -5,18 +5,35 @@
  */
 package imclient;
 
-import javax.swing.UIManager;
+import java.awt.Color;
+import java.awt.Component;
 import java.sql.*;
 import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import javafx.util.Pair;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.DefaultListModel;
+import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.ListCellRenderer;
 import javax.swing.ListModel;
 import javax.swing.SwingConstants;
+import javax.swing.border.Border;
+import javax.swing.border.EmptyBorder;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.SimpleAttributeSet;
+import javax.swing.text.StyleConstants;
 import org.jivesoftware.smack.XMPPException;
+import org.jivesoftware.smack.packet.Presence;
+import org.jivesoftware.smack.roster.RosterEntry;
 
 /**
- *
+ * The outermost layer of the IMClient application
+ * <p>
+ * Creates a UI for user interaction with IMClient. Database and XMPP server 
+ * configurations also included.
+ * 
  * @author Akhil
  */
 public class ClientWindow extends javax.swing.JFrame {
@@ -41,7 +58,7 @@ public class ClientWindow extends javax.swing.JFrame {
         sendButton = new javax.swing.JButton();
         messageField = new javax.swing.JTextField();
         chatAreaPane = new javax.swing.JScrollPane();
-        chatArea = new javax.swing.JTextArea();
+        chatArea = new javax.swing.JTextPane();
         contactListPane = new javax.swing.JScrollPane();
         contactList = new javax.swing.JList<>();
         typeListArea = new javax.swing.JScrollPane();
@@ -84,6 +101,7 @@ public class ClientWindow extends javax.swing.JFrame {
         messagePanel.add(sendButton, new org.netbeans.lib.awtextra.AbsoluteConstraints(400, 0, 50, 40));
 
         messageField.setFont(new java.awt.Font("Dialog", 0, 12)); // NOI18N
+        messageField.setBorder(null);
         messagePanel.add(messageField, new org.netbeans.lib.awtextra.AbsoluteConstraints(0, 0, 400, 40));
 
         getContentPane().add(messagePanel, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 540, 450, 40));
@@ -94,10 +112,10 @@ public class ClientWindow extends javax.swing.JFrame {
 
         chatArea.setEditable(false);
         chatArea.setBackground(new java.awt.Color(0, 153, 153));
-        chatArea.setColumns(10);
-        chatArea.setFont(new java.awt.Font("Dialog", 0, 14)); // NOI18N
-        chatArea.setLineWrap(true);
-        chatArea.setRows(5);
+        chatArea.setBorder(javax.swing.BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        chatArea.setFocusable(false);
+        chatArea.setMargin(new java.awt.Insets(10, 10, 10, 10));
+        chatArea.setRequestFocusEnabled(false);
         chatAreaPane.setViewportView(chatArea);
 
         getContentPane().add(chatAreaPane, new org.netbeans.lib.awtextra.AbsoluteConstraints(450, 0, 450, 540));
@@ -111,9 +129,14 @@ public class ClientWindow extends javax.swing.JFrame {
         contactList.setForeground(new java.awt.Color(255, 255, 255));
         contactList.setModel(new DefaultListModel());
         contactList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
+        contactList.setAlignmentX(2.0F);
+        contactList.setAlignmentY(2.0F);
         contactList.setFixedCellHeight(50);
         contactList.setFixedCellWidth(250);
+        contactList.setFocusable(false);
         contactList.setPreferredSize(new java.awt.Dimension(250, 580));
+        contactList.setRequestFocusEnabled(false);
+        contactList.setSelectionBackground(new java.awt.Color(0, 255, 255));
         contactList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
                 contactListValueChanged(evt);
@@ -137,6 +160,9 @@ public class ClientWindow extends javax.swing.JFrame {
         typeList.setSelectionMode(javax.swing.ListSelectionModel.SINGLE_SELECTION);
         typeList.setFixedCellHeight(50);
         typeList.setFixedCellWidth(200);
+        typeList.setFocusable(false);
+        typeList.setRequestFocusEnabled(false);
+        typeList.setSelectionBackground(new java.awt.Color(0, 204, 204));
         typeList.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
             public void valueChanged(javax.swing.event.ListSelectionEvent evt) {
                 typeListValueChanged(evt);
@@ -197,12 +223,7 @@ public class ClientWindow extends javax.swing.JFrame {
     }//GEN-LAST:event_contactListValueChanged
 
     private void typeListValueChanged(javax.swing.event.ListSelectionEvent evt) {//GEN-FIRST:event_typeListValueChanged
-        Set<String> contacts = xmppManager.getContacts(userName);
-        DefaultListModel model = new DefaultListModel();
-        for(String s: contacts){
-            model.addElement(s);
-        }
-        contactList.setModel(model);
+        updateContactList();
     }//GEN-LAST:event_typeListValueChanged
 
     /**
@@ -217,6 +238,7 @@ public class ClientWindow extends javax.swing.JFrame {
         xmppManager.init();
         xmppManager.performLogin(username, password);
         xmppManager.setStatus(true, status);
+        xmppManager.setWindow(this);
     }
     
     /**
@@ -224,17 +246,91 @@ public class ClientWindow extends javax.swing.JFrame {
      * <p>
      * Erases previous display and redisplays all messages
      */
-    private void updateChatArea(){
+    public void updateChatArea(){
+        String previousDate = null;
         try{
             ResultSet rs = DBManager.getMessages(userName, buddyName);
             chatArea.setText("");
-            while(rs.next())
-                chatArea.append("\n" + rs.getString("sender") + " (" 
-                        + rs.getTimestamp("timestamp") + "): " + rs.getString("body"));
+            
+            //set date display style
+            SimpleAttributeSet date = new SimpleAttributeSet();
+            StyleConstants.setFontFamily(date, "Tahoma");
+            StyleConstants.setForeground(date, Color.WHITE);
+            StyleConstants.setAlignment(date, StyleConstants.ALIGN_CENTER);
+            StyleConstants.setFontSize(date, 12);
+            
+            //set username display style
+            SimpleAttributeSet user1 = new SimpleAttributeSet();
+            StyleConstants.setFontFamily(user1, "Tahoma");
+            StyleConstants.setForeground(user1, new Color(0, 0, 204));
+            StyleConstants.setAlignment(user1, StyleConstants.ALIGN_LEFT);
+            StyleConstants.setFontSize(user1, 16);
+            
+            SimpleAttributeSet user2 = new SimpleAttributeSet(user1);
+            StyleConstants.setForeground(user2, new Color(204, 0, 0));
+            
+            //set message body display style
+            SimpleAttributeSet message = new SimpleAttributeSet();
+            StyleConstants.setFontFamily(message, "Tahoma");
+            StyleConstants.setForeground(message, Color.BLACK);
+            StyleConstants.setAlignment(message, StyleConstants.ALIGN_LEFT);
+            StyleConstants.setFontSize(message, 16);
+            
+            //set time display style
+            SimpleAttributeSet time = new SimpleAttributeSet();
+            StyleConstants.setFontFamily(time, "Tahoma");
+            StyleConstants.setForeground(time, Color.WHITE);
+            StyleConstants.setAlignment(time, StyleConstants.ALIGN_RIGHT);
+            StyleConstants.setFontSize(time, 10);
+            while(rs.next()){
+                String[] currentDate = rs.getTimestamp("timestamp").toString().split(" ");
+                String user = rs.getString("sender");
+                if(previousDate == null){
+                    chatArea.setParagraphAttributes(date, true);
+                    chatArea.getDocument().insertString(chatArea.getDocument().getLength(),
+                            currentDate[0] + "\n", date);
+                }
+                else if(!previousDate.equals(currentDate[0])){
+                    chatArea.setParagraphAttributes(date, true);
+                    chatArea.getDocument().insertString(chatArea.getDocument().getLength(),
+                            currentDate[0] + "\n", date);
+                }
+                if(user.equals(userName)){
+                    chatArea.setParagraphAttributes(user1, true);
+                    chatArea.getDocument().insertString(
+                            chatArea.getDocument().getLength(), "You : ", user1);
+                }
+                else{
+                    chatArea.setParagraphAttributes(user2, true);
+                    chatArea.getDocument().insertString(
+                            chatArea.getDocument().getLength(), user + ": ", user2);
+                }
+                chatArea.setParagraphAttributes(message, true);
+                chatArea.getDocument().insertString(chatArea.getDocument().getLength(),
+                        rs.getString("body") + "\n", message);
+                chatArea.setParagraphAttributes(time, true);
+                chatArea.getDocument().insertString(chatArea.getDocument().getLength(),
+                        currentDate[1].substring(0, 5) + "\n", time);
+                previousDate = currentDate[0];
+            }
         }
         catch(SQLException e){
             System.out.println(e);
+        } catch (BadLocationException ex) {
+            Logger.getLogger(ClientWindow.class.getName()).log(Level.SEVERE, null, ex);
         }
+    }
+    
+    /**
+     * Update the contact list
+     */
+    public void updateContactList(){
+        Set< Pair<RosterEntry, Presence> > contacts = xmppManager.getContacts(userName);
+        DefaultListModel model = new DefaultListModel();
+        contacts.forEach((c) -> {
+            model.addElement(c);
+        });
+        contactList.setModel(model);
     }
     
     /**
@@ -242,47 +338,28 @@ public class ClientWindow extends javax.swing.JFrame {
      * @param args the command line arguments
      */
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (UIManager.LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        }
-        catch(ClassNotFoundException | InstantiationException | 
-                IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex){
-            java.util.logging.Logger.getLogger(ClientWindow.class.getName())
-                    .log(java.util.logging.Level.SEVERE, null, ex);
-        }
-
         /* Create and display the form */
         java.awt.EventQueue.invokeLater(new Runnable() {
             @Override
             public void run() {
                 ClientWindow window = new ClientWindow();
-                
+                window.userName = "test_user1";
+                window.password = "test_pass1";
+                window.status = "Available";
                 try{
-                    window.setupManager("test_user1", "test_pass1", "Hello everyone");
-                    window.userName = "test_user1";
+                    window.setupManager(window.userName, window.password, window.status);
                     DBManager.databaseConnect(DB_NAME, DB_USER, DB_PASSWORD);
                 }
-                catch(Exception e){
+                catch(XMPPException e){
                     System.out.println(e);
                 }
+                
+                //add custom cell renderer to contact List
+                window.contactList.setCellRenderer(new ContactListCellRenderer());
                 
                 //center type list elements
                 DefaultListCellRenderer renderer = 
                         (DefaultListCellRenderer) window.typeList.getCellRenderer();
-                renderer.setHorizontalAlignment(SwingConstants.CENTER);
-                
-                //center contact list elements
-                renderer = (DefaultListCellRenderer) window.contactList.getCellRenderer();
                 renderer.setHorizontalAlignment(SwingConstants.CENTER);
                 
                 //Make the window visible
@@ -292,7 +369,7 @@ public class ClientWindow extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextArea chatArea;
+    private javax.swing.JTextPane chatArea;
     private javax.swing.JScrollPane chatAreaPane;
     private javax.swing.JList<String> contactList;
     private javax.swing.JScrollPane contactListPane;
@@ -314,5 +391,59 @@ public class ClientWindow extends javax.swing.JFrame {
     private final static String DB_PASSWORD = "im_password";
     private static XmppManager xmppManager;
     private String userName;
+    private String password;
+    private String status;
     private String buddyName;
+}
+
+/**
+ * A cell renderer for the contact list cells
+ * @author Akhil
+ */
+class ContactListCellRenderer extends JLabel implements ListCellRenderer{
+    
+    /**
+     * Constructor
+     */
+    public ContactListCellRenderer(){
+        setOpaque(true);
+        Border margin = new EmptyBorder(10,10,10,10);
+        setBorder(margin);
+        setHorizontalAlignment(LEFT);
+        setVerticalAlignment(CENTER);
+    }
+    
+    /**
+     * Returns a JLabel with a username and presence to be added to the JList
+     * 
+     * @param list          the list which is using the renderer 
+     * @param value         the Pair<RosterEntry, Presence> to be rendered
+     * @param index         the index of the cell to be rendered
+     * @param isSelected    whether the cell to render is selected
+     * @param cellHasFocus  whether the cell to render has focus
+     * @return 
+     */
+    @Override
+    public Component getListCellRendererComponent(JList list, Object value,
+                        int index, boolean isSelected, boolean cellHasFocus){
+        //Get the selected index. (The index param isn't
+        //always valid, so just use the value.)
+        Pair<RosterEntry, Presence> pair = (Pair<RosterEntry, Presence>)value;
+        RosterEntry contact = pair.getKey();
+        Presence presence = pair.getValue();
+        
+        if (isSelected) {
+            setBackground(list.getSelectionBackground());
+            setForeground(list.getSelectionForeground());
+        } else {
+            setBackground(list.getBackground());
+            setForeground(list.getForeground());
+        }
+        
+        setText("<html><span style=\"font-family:Tahoma;font-size:16px;\">"
+                + contact.getName()+ "</span><br>" 
+                + (presence.isAvailable()? "Online" : "Offline") + "</html>");
+        
+        return this;
+    }
 }
